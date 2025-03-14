@@ -1,0 +1,8 @@
+SampleID,Tissue,Factor,Condition,Treatment,Replicate,bamReads,ControlID,bamControl,Peaks,PeakCaller
+786O,786O,,ccRCC,ccRCC,,./bams/786O_treatment.bam,,,./narrowpeaks/786O_peaks.narrowPeak,narrowPeak
+A498,A498,,ccRCC,ccRCC,,./bams/A498_treatment.bam,,,./narrowpeaks/A498_peaks.narrowPeak,narrowPeak
+CAKI1,CAKI1,,ccRCC,ccRCC,,./bams/CAKI1_treatment.bam,,,./narrowpeaks/CAKI1_peaks.narrowPeak,narrowPeak
+FUUR1,FUUR1,,tRCC,tRCC,,./bams/FUUR1_treatment.bam,,,./narrowpeaks/FUUR1_peaks.narrowPeak,narrowPeak
+RFX393,RFX393,,ccRCC,ccRCC,,./bams/RFX393_treatment.bam,,,./narrowpeaks/RFX393_peaks.narrowPeak,narrowPeak
+UOK146,UOK146,,tRCC,tRCC,,./bams/UOK146_treatment.bam,,,./narrowpeaks/UOK146_peaks.narrowPeak,narrowPeak
+sTFE,sTFE,,tRCC,tRCC,,./bams/sTFE_treatment.bam,,,./narrowpeaks/sTFE_peaks.narrowPeak,narrowPeak
