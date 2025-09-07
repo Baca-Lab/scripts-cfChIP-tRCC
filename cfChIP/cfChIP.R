@@ -379,3 +379,80 @@ print(boxplot)
 
 
 ```
+
+``` {r Leave-one-out-cross-validation tRCC vs HP}
+
+library(ROCR)
+
+prediction_df <- NULL
+cut_offs_summary_final <- NULL
+
+scores_final$cancer_subtype = ifelse(scores_final$cancer_subtype == "tRCC", "tRCC", "Other") #Other could be either HP or ccRCC, or all together
+
+for (sample_to_test in scores_final$study_name) {
+  
+  sample_to_test_score = scores_final$auc[scores$study_name==sample_to_test]
+  sample_to_test_subtype = scores_final$cancer_subtype[scores$study_name==sample_to_test]
+  
+  scores_final_subset = scores_final %>% 
+    dplyr::filter(study_name != sample_to_test)
+
+# Step 1: Generate the ROC curve
+pred = prediction(scores_final_subset$auc, scores_final_subset$cancer_subtype == 'tRCC')  
+perf = performance(pred, 'tpr', 'fpr')
+
+# Step 2: Calculate AUC (Area Under the Curve)
+auc_value = unlist(performance(pred, 'auc')@y.values) %>% round(digits = 2)
+
+# Step 3: Find the optimal cutoff (maximizing Youden's index)
+# Youden's index = sensitivity + specificity - 1, where sensitivity = TPR and specificity = 1 - FPR
+fpr_values = unlist(perf@x.values)
+tpr_values = unlist(perf@y.values)
+
+# Calculate Youden's index for each threshold
+youden_index = tpr_values - fpr_values
+
+# Find the threshold corresponding to the maximum Youden's index
+optimal_cutoff_index = which.max(youden_index)
+optimal_cutoff = pred@cutoffs[[1]][optimal_cutoff_index]
+
+cut_offs_summary = data.frame(cut_off = optimal_cutoff)
+
+cut_offs_summary_final = rbind(cut_offs_summary_final, cut_offs_summary)
+
+# Step 4: Apply the cutoff to classify the samples
+scores_final_subset$classified = ifelse(scores_final_subset$auc >= optimal_cutoff, 'tRCC', 'Other')
+
+row_to_add <- data.frame(sample_id = sample_to_test,
+                         cancer_subtype = sample_to_test_subtype,
+                         prediction = case_when(
+                           sample_to_test_score >= optimal_cutoff ~ "tRCC",
+                           sample_to_test_score < optimal_cutoff ~ "Other"
+                           ))
+
+prediction_df = rbind(prediction_df, row_to_add)
+
+}
+
+conf_mat <- table(prediction_df$cancer_subtype, prediction_df$prediction)
+
+TP <- conf_mat["tRCC", "tRCC"]
+FN <- conf_mat["tRCC", "Other"]
+TN <- conf_mat["Other", "Other"]
+FP <- conf_mat["Other", "tRCC"]
+
+sensitivity <- TP / (TP + FN)
+specificity <- TN / (TN + FP)
+
+precision <- TP / (TP + FP)
+recall <- TP / (TP + FN)  # same as sensitivity
+
+cat("Precision: ", round(precision, 3), "\n")
+cat("Recall: ", round(recall, 3), "\n")
+
+cat("Sensitivity: ", round(sensitivity, 3), "\n")
+cat("Specificity: ", round(specificity, 3), "\n")
+
+LOOCV_cut_off = log2(mean(cut_offs_summary_final$cut_off)+1)
+cat("Average cutoff: ", round(LOOCV_cut_off,2))
+```
